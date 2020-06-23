@@ -1,31 +1,35 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use tokens::TokenType ;
-use tokens::TokenType::* ;
-use tokens::Token;
+use super::tokens::TokenType ;
+use super::tokens::Token;
+use super::tokens::TokenType::* ;
 
 pub struct Scanner {
     code: Vec<char>,
     start: usize,
     current: usize,
-    line: usize
-}
-
-pub fn NewScanner(s: String) -> Scanner {
-    // Making sure there's an end of file marker at the end of he file
-    let s = s + "\0" ;
-
-    return Scanner{
-        code: s.chars().collect(),
-        start: 0 ,
-        current: 0,
-        line: 0,
-    }
+    line: usize,
+    codeLength: usize
 }
 
 impl Scanner {
+
+    pub fn new(s: String) -> Scanner {
+        // Making sure there's an end of file marker at the end of he file
+        let s = s + "\0" ;
+        let mut code_string:Vec<char> = s.chars().collect();
+        return Scanner{
+            code: code_string.clone(),
+            start: 0 ,
+            current: 0,
+            line: 0,
+            codeLength: code_string.len()
+        }
+    }
+
     pub fn ScanToken(&mut self) -> Token {
+
         self.skipWhitespace();
 
         self.start = self.current;
@@ -144,8 +148,8 @@ impl Scanner {
             if self.peek() != '"' && !self.isAtEnd() {
                 if self.peek() == '\n' {
                     self.line += 1;
-                    self.advance();
                 }
+                self.advance();
             } else {
                 break;
             }
@@ -292,8 +296,6 @@ impl Scanner {
 
     fn identifierType(&mut self) -> TokenType {
 
-        use TokenType::* ;
-
         let tokenString = self.getTokenValue() ;
         // If this identifier is a keyword, then return the appropriate token
         return match tokenString.as_str() {
@@ -318,31 +320,4 @@ impl Scanner {
 
     }
 
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::Scanner ;
-    use super::TokenType ;
-
-    #[test]
-    pub fn it_works() {
-        let mut s :Scanner = super::NewScanner(String::from("This is a test
-        /*Not this*/
-        As is this
-        // But we can ignore this
-        and what a test it is
-        /*No sweat*/
-        Now this is a real test"
-        )) ;
-        println!("Starting ..");
-        loop {
-            let tok = s.ScanToken();
-            println!("{}",tok.name);
-            if tok.tokenType == TokenType::T_EOF {
-                break ;
-            }
-        }
-    }
 }
