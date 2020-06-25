@@ -1,6 +1,6 @@
 use super::module::* ;
 
-pub struct Instructions {
-    module: *Module,
+pub struct Instructions<'a> {
+    module: &'a Module,
     instructionPtr: usize,           // Current instruction pointer
 }
