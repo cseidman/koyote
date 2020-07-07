@@ -1,16 +1,14 @@
-#![allow(non_snake_case)]
-#![allow(non_camel_case_types)]
 
-use super::scanner::* ;
 use super::tokens::TokenType ;
 use super::tokens::Token;
+use super::errormgr::*;
 
-
+#[derive(Clone)]
 pub struct CodeParser {
-    current: Token,
-    previous: Token,
-    hadError: bool,
-    inPanicMode: bool
+    pub current: Token,
+    pub previous: Token,
+    pub hadError: bool,
+    pub inPanicMode: bool
 }
 
 impl CodeParser {
@@ -24,14 +22,37 @@ impl CodeParser {
             inPanicMode: false
         };
     }
-}
 
-#[cfg(test)]
-mod test {
-    #[test]
-    pub fn test_parse() {
-        use super::super::parser::*;
-        let p = CodeParser::new() ;
+    pub fn Advance(&mut self) {
+        self.previous =  self.current.clone();
+    }
+
+    pub fn Previous(self) -> Token {
+        return self.previous ;
+    }
+
+    pub fn Current(self) -> Token {
+        return self.current ;
+    }
+
+    pub fn Check(self, t:TokenType) -> bool {
+        return self.current.tokenType == t ;
+    }
+
+    pub fn Match(&mut self, t:TokenType) -> bool {
+        if self.current.tokenType == t {
+            self.previous = self.current.clone() ;
+            return true;
+        } else {
+            return false ;
+        }
+    }
+
+    pub fn Consume(&mut self, t:TokenType, s:&str) {
+        if self.current.tokenType == t {
+            self.previous = self.current.clone() ;
+            return;
+        }
+        HandleError(s) ;
     }
 }
-

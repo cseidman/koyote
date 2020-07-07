@@ -1,6 +1,6 @@
 use std::process;
 
-pub fn HandleError(message: String) {
+pub fn HandleError(message: &str) {
     println!("{}",message);
     QuitApp() ;
 }

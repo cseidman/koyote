@@ -1,10 +1,9 @@
-#![allow(non_snake_case)]
-#![allow(non_camel_case_types)]
 
 use super::tokens::TokenType ;
 use super::tokens::Token;
 use super::tokens::TokenType::* ;
 
+#[derive(Clone)]
 pub struct Scanner {
     code: Vec<char>,
     start: usize,
@@ -15,10 +14,10 @@ pub struct Scanner {
 
 impl Scanner {
 
-    pub fn new(s: String) -> Scanner {
+    pub fn new() -> Self {
         // Making sure there's an end of file marker at the end of he file
-        let s = s + "\0" ;
-        let mut code_string:Vec<char> = s.chars().collect();
+        let s = "" ;
+        let code_string:Vec<char> = s.chars().collect();
         return Scanner{
             code: code_string.clone(),
             start: 0 ,
@@ -26,6 +25,16 @@ impl Scanner {
             line: 0,
             codeLength: code_string.len()
         }
+    }
+
+    pub fn LoadSource(&mut self, s: &String) {
+
+        let mut code_string:Vec<char> = s.chars().collect();
+        code_string.push('\0');
+        self.code = code_string ;
+        self.start = 0 ;
+        self.current = 0 ;
+        self.codeLength = self.code.len() ;
     }
 
     pub fn ScanToken(&mut self) -> Token {
@@ -42,6 +51,10 @@ impl Scanner {
 
         if self.isAlpha(c) {
             return self.identifier();
+        }
+
+        if self.isDigit(c) {
+            return self.number() ;
         }
 
         match c {
@@ -79,7 +92,7 @@ impl Scanner {
         }
     }
 
-    pub fn errorToken(&mut self, message: &str) -> Token {
+    fn errorToken(&mut self, message: &str) -> Token {
         return Token {
             tokenType: T_ERROR,
             line: self.line,
@@ -88,7 +101,7 @@ impl Scanner {
         }
     }
 
-    pub fn tmatch(&mut self, expected: char) -> bool {
+    fn tmatch(&mut self, expected: char) -> bool {
         if self.isAtEnd() { return false };
         if self.currentChar() != expected {
             return false
@@ -207,7 +220,7 @@ impl Scanner {
         return self.code[self.current-1];
     }
 
-    pub fn makeToken(&self, ttype: TokenType) -> Token {
+    fn makeToken(&self, ttype: TokenType) -> Token {
 
         let slice:Vec<char> = self.code[self.start..=self.current].to_vec();
 
@@ -219,7 +232,7 @@ impl Scanner {
         }
     }
 
-    pub fn makeEOFToken(&self) -> Token {
+    fn makeEOFToken(&self) -> Token {
         return Token {
             tokenType: T_EOF,
             line: 0,
