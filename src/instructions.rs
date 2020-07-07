@@ -14,6 +14,7 @@ pub struct Instruction {
 }
 
 impl Instruction {
+
     pub fn AddComment(&mut self,comment: String) {
         self.comments = comment
     }

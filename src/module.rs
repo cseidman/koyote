@@ -13,7 +13,7 @@ impl Module {
 
     pub fn new(name: String) -> Self {
         let md = Module {
-            name: name,
+            name,
             isLoaded: false,
             instructions: Vec::<Instruction>::new(),
             iCount: 0

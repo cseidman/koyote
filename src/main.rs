@@ -37,7 +37,7 @@ pub fn Repl() -> io::Result<()> {
 
     //let app = App::new() ;
 
-    let mut compiler = Compiler::new() ;
+    let mut compiler = Compiler::new("main".to_string()) ;
 
     loop {
         let mut buffer = String::new();

@@ -11,36 +11,24 @@ use std::ops::Deref;
 use std::mem;
 use crate::tokens::TokenType;
 use crate::errormgr::HandleError;
+use crate::module::Module;
 
-pub struct App {
-    pub compiler: Compiler
-}
-
-impl App {
-   pub fn new() -> App {
-       return App{
-           compiler: Compiler {
-               scanner: Scanner::new(),
-               parser: CodeParser::new(),
-               rules: Compiler::GetRules()
-           }
-       } ;
-   }
-}
 #[derive(Clone)]
 pub struct Compiler {
     pub scanner:  Scanner ,
     pub parser:  CodeParser,
     pub rules: [ParseRule;47],
+    pub module: Module
 }
 
 impl Compiler {
 
-    pub fn new() -> Compiler{
+    pub fn new(m: String) -> Compiler{
         return  Compiler {
             scanner: Scanner::new(),
             parser: CodeParser::new(),
-            rules: Compiler::GetRules()
+            rules: Compiler::GetRules(),
+            module: Module::new(m)
         }
     }
 
@@ -83,7 +71,7 @@ impl Compiler {
 
         let mut p = [ParseRule{prefix: None, infix: None, prec: PREC_NONE};47] ;
 
-        p[T_LEFT_PAREN as usize] =  ParseRule{prefix: Some(Compiler::Nothing), infix: None, prec: PREC_CALL};
+        p[T_INTEGER as usize] =  ParseRule{prefix: Some(Compiler::Integer), infix: None, prec: PREC_NONE};
 
         return p ;
     }
@@ -113,7 +101,13 @@ impl Compiler {
         self.Consume(T_RIGHT_PAREN, "Expect ')' after expression");
     }
 
-    fn Nothing(&self, _canAssign:bool) {
+    // Emit operations
+    fn EmitOp(&self, ) {
+
+    }
+
+    // Expression functions
+    fn Integer(&self, _canAssign:bool) {
 
     }
 
@@ -147,7 +141,7 @@ impl Compiler {
                 HandleError("Invalid assignment target.") ;
             }
         }
-        
+
     }
 
 }
