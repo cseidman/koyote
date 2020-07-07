@@ -1,8 +1,10 @@
 #[derive(PartialEq)]
+#[derive(Clone)]
 pub enum OpCode {
     OP_START ,
     OP_HALT ,
-    OP_CONST
+    OP_CONST(u16),
+    OP_PUSH(i32)
 }
 
 pub fn OpCode2String(opcode: &OpCode) -> String {

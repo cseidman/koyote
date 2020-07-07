@@ -5,6 +5,8 @@ use super::tokens::TokenType::*;
 use super::tokens::Token;
 use super::rules::* ;
 use super::rules::Precedence::* ;
+use super::module::* ;
+use super::instructions::* ;
 
 use std::ops::Deref;
 
@@ -12,6 +14,9 @@ use std::mem;
 use crate::tokens::TokenType;
 use crate::errormgr::HandleError;
 use crate::module::Module;
+use crate::opcodes::OpCode::OP_CONST;
+use crate::opcodes::OpCode;
+use crate::utils::StringToInt;
 
 #[derive(Clone)]
 pub struct Compiler {
@@ -24,11 +29,14 @@ pub struct Compiler {
 impl Compiler {
 
     pub fn new(m: String) -> Compiler{
+
+        let mdl = Module::new(m);
+
         return  Compiler {
             scanner: Scanner::new(),
             parser: CodeParser::new(),
             rules: Compiler::GetRules(),
-            module: Module::new(m)
+            module: mdl
         }
     }
 
@@ -102,13 +110,14 @@ impl Compiler {
     }
 
     // Emit operations
-    fn EmitOp(&self, ) {
+    fn EmitOp(&self, op: OpCode) {
 
     }
 
     // Expression functions
     fn Integer(&self, _canAssign:bool) {
-
+        let intg:u16 = StringToInt(&self.parser.previous.name);
+        self.EmitOp(OP_CONST(intg));
     }
 
     fn ParsePrecedence(&mut self, prec:Precedence) {

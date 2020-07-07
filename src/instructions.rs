@@ -1,7 +1,7 @@
 
 use super::opcodes::* ;
 use super::module::* ;
-
+#[derive(Clone)]
 pub struct Instruction {
     pub opcode : OpCode,
     pub operands: Vec<u16>,

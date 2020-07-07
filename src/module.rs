@@ -1,24 +1,23 @@
-
 use super::instructions::* ;
 use super::opcodes::* ;
-
+#[derive(Clone)]
 pub struct Module {
-    name: String,
-    isLoaded: bool,
-    instructions: Vec<Instruction>,
-    iCount: usize
+    pub name: String,
+    pub isLoaded: bool,
+    pub instructions: Vec<Instruction>,
+    pub iCount: usize
 }
 
 impl Module {
 
     pub fn new(name: String) -> Self {
-        let md = Module {
+        return  Module {
             name,
             isLoaded: false,
             instructions: Vec::<Instruction>::new(),
             iCount: 0
         };
-        return md ;
+
     }
 
     pub fn AddInstruction(&mut self, opcode: OpCode, operands: Vec<u16>) {
@@ -26,9 +25,9 @@ impl Module {
         let iLen = operands.len() ;
 
         let instr = Instruction{
-            opcode: opcode,
+            opcode,
             operandCount: iLen,
-            operands: operands,
+            operands,
             comments: ";".to_string(),
             startByte: 0 ,
             endByte: 1 + (iLen * 2)
