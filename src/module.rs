@@ -1,11 +1,17 @@
 use super::instructions::* ;
 use super::opcodes::* ;
+use super::objects::* ;
+
 #[derive(Clone)]
 pub struct Module {
     pub name: String,
     pub isLoaded: bool,
+
     pub instructions: Vec<Instruction>,
-    pub iCount: usize
+    pub iCount: usize,
+
+    pub constants: Vec<Box<dyn Obj>>,
+    pub iConst: u16
 }
 
 impl Module {
@@ -15,9 +21,16 @@ impl Module {
             name,
             isLoaded: false,
             instructions: Vec::<Instruction>::new(),
-            iCount: 0
+            iCount: 0,
+            constants: Vec::<dyn Obj>::new(),
+            iConst: 0
         };
+    }
 
+    pub fn AddConstant(&mut self, o: Box<dyn Obj>) -> u16 {
+        self.constants.push(o) ;
+        self.iConst+=1 ;
+        return self.iConst-1 ;
     }
 
     pub fn AddInstruction(&mut self, opcode: OpCode, operands: Vec<u16>) {

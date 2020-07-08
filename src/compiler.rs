@@ -116,7 +116,7 @@ impl Compiler {
 
     // Expression functions
     fn Integer(&self, _canAssign:bool) {
-        let intg:u16 = StringToInt(&self.parser.previous.name);
+        let intg:u16 = u16::Convert(&self.parser.previous.name);
         self.EmitOp(OP_CONST(intg));
     }
 
