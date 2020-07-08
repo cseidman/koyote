@@ -17,13 +17,15 @@ use crate::module::Module;
 use crate::opcodes::OpCode::OP_CONST;
 use crate::opcodes::OpCode;
 use crate::utils::StringToInt;
+use crate::objects::{ObjInteger, ObjType};
 
-#[derive(Clone)]
+use ObjType::* ;
+
 pub struct Compiler {
     pub scanner:  Scanner ,
     pub parser:  CodeParser,
     pub rules: [ParseRule;47],
-    pub module: Module
+    pub module: Box<Module>
 }
 
 impl Compiler {
@@ -36,7 +38,7 @@ impl Compiler {
             scanner: Scanner::new(),
             parser: CodeParser::new(),
             rules: Compiler::GetRules(),
-            module: mdl
+            module: Box::new(mdl)
         }
     }
 
@@ -111,13 +113,14 @@ impl Compiler {
 
     // Emit operations
     fn EmitOp(&self, op: OpCode) {
-
+        self.module.AddInstruction(op,) ;
     }
 
     // Expression functions
-    fn Integer(&self, _canAssign:bool) {
-        let intg:u16 = u16::Convert(&self.parser.previous.name);
-        self.EmitOp(OP_CONST(intg));
+    fn Integer(&mut self, _canAssign:bool) {
+        let intg:u64 = u64::Convert(&self.parser.previous.name);
+        let idx = self.module.AddConstant(ObjInteger::new(intg)) ;
+        self.EmitOp(OP_CONST(idx));
     }
 
     fn ParsePrecedence(&mut self, prec:Precedence) {
@@ -136,14 +139,14 @@ impl Compiler {
             return ;
         }
         let canAssign = prec <= PREC_ASSIGNMENT;
-        prefix.unwrap()(&self,canAssign);
+        prefix.unwrap()(self,canAssign);
 
         while prec <= (&self.GetRule(self.parser.current.tokenType)).prec {
             self.Advance() ;
 
             let infix = &self.GetRule(self.parser.previous.tokenType).infix ;
             if infix.is_some()  {
-                infix.unwrap()(&self,canAssign) ;
+                infix.unwrap()(self,canAssign) ;
             }
 
             if canAssign && self.Match(T_EQUAL) {

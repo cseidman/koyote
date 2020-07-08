@@ -1,7 +1,6 @@
 use std::io::Bytes;
 
-#[derive(Copy)]
-enum ObjType {
+pub enum ObjType {
     VAL_STRING,
     VAL_INTEGER,
     VAL_FLOAT,
@@ -10,13 +9,12 @@ enum ObjType {
 
 use ObjType::* ;
 
-pub trait Obj: Clone + Sized {
+pub trait Obj  {
     fn ShowValue(&self) -> String ;
     fn ToBytes(&self) -> Vec<u8> ;
 }
 
 // ObjString ----------------
-#[derive(Clone)]
 pub struct ObjString {
     pub objtype: ObjType,
     pub value: String
@@ -24,23 +22,42 @@ pub struct ObjString {
 
 impl Obj for ObjString {
     fn ShowValue(&self) -> String {
-        return self.value.clone() ;
+
+        let s = self.value.clone() ;
+        return s ;
     }
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.as_bytes().to_vec() ;
     }
 }
+impl ObjString {
+    pub fn new(s:String) -> Box<ObjString> {
+        return Box::new(ObjString{
+            objtype: VAL_STRING,
+            value: s
+        }) ;
+    }
+}
 
 // ObjInteger ----------------
-#[derive(Clone)]
 pub struct ObjInteger {
     pub objtype: ObjType,
-    pub value: i64
+    pub value: u64
 }
+impl ObjInteger {
+    pub fn new(i:u64) -> Box<ObjInteger> {
+        return Box::new(ObjInteger{
+            objtype: VAL_INTEGER,
+            value: i
+        }) ;
+    }
+}
+
 
 impl Obj for ObjInteger {
     fn ShowValue(&self) -> String {
-        return format!("{}",self.value) ;
+        let val = self.value ;
+        return format!("{}",val) ;
     }
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.to_le_bytes().to_vec();

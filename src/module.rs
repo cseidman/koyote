@@ -2,7 +2,7 @@ use super::instructions::* ;
 use super::opcodes::* ;
 use super::objects::* ;
 
-#[derive(Clone)]
+
 pub struct Module {
     pub name: String,
     pub isLoaded: bool,
@@ -22,7 +22,7 @@ impl Module {
             isLoaded: false,
             instructions: Vec::<Instruction>::new(),
             iCount: 0,
-            constants: Vec::<dyn Obj>::new(),
+            constants: Vec::<Box<dyn Obj>>::new(),
             iConst: 0
         };
     }

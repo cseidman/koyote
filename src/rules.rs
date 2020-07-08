@@ -2,7 +2,7 @@ use self::Precedence::* ;
 use super::tokens::TokenType::* ;
 use super::compiler::*;
 
-pub type ParseFn = fn(&Compiler,bool) ;
+pub type ParseFn = fn(&mut Compiler,bool) ;
 
 #[derive(Copy, Clone)]
 pub struct ParseRule {
