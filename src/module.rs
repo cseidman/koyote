@@ -11,7 +11,8 @@ pub struct Module {
     pub iCount: usize,
 
     pub constants: Vec<Box<dyn Obj>>,
-    pub iConst: u16
+    pub iConst: u16,
+    pub bytes: usize
 }
 
 impl Module {
@@ -23,31 +24,38 @@ impl Module {
             instructions: Vec::<Instruction>::new(),
             iCount: 0,
             constants: Vec::<Box<dyn Obj>>::new(),
-            iConst: 0
+            iConst: 0,
+            bytes: 0
         };
     }
 
-    pub fn AddConstant(&mut self, o: Box<dyn Obj>) -> u16 {
+    // Add the given object to the current module's constant pool
+    // and return the index number of the new constant
+    pub fn NewConstant(&mut self, o: Box<dyn Obj>) -> u16 {
         self.constants.push(o) ;
         self.iConst+=1 ;
         return self.iConst-1 ;
     }
 
-    pub fn AddInstruction(&mut self, opcode: OpCode, operands: Vec<u16>) {
+    // Once an instruction has added, we can add operands to the same instruction
+    pub fn AddOperand(&mut self, index: u16) {
+        self.instructions[self.iCount].AddOperand(index) ;
+        self.bytes+=2 ; // Add 2 to the total bytes
+    }
 
-        let iLen = operands.len() ;
+    pub fn AddInstruction(&mut self, opcode: OpCode) {
 
         let instr = Instruction{
             opcode,
-            operandCount: iLen,
-            operands,
+            operandCount: 0,
+            operands: Vec::new(),
             comments: ";".to_string(),
-            startByte: 0 ,
-            endByte: 1 + (iLen * 2)
+            bytes: 1
         };
 
         self.instructions.push(instr) ;
         self.iCount+=1 ;
+        self.bytes+=1 ;
 
     }
 
@@ -56,7 +64,7 @@ impl Module {
         println!("============================") ;
         for i in 0..self.iCount {
             let opc = &self.instructions[i].opcode ;
-            print!("{number:>05} | {width:<15} ",number=i,width=OpCode2String(opc)) ;
+            print!("{number:>05} | {width:<15} ",number=i,width=OpLabel(opc)) ;
 
             if self.instructions[i].operandCount == 0 {
                 print!("|") ;
@@ -72,13 +80,3 @@ impl Module {
     }
 }
 
-
-#[cfg(test)]
-#[test]
-pub fn test_instruction() {
-    use OpCode::* ;
-    let mut m = Module::new("Test".to_string()) ;
-    m.AddInstruction(OP_START,vec![2]) ;
-    m.AddInstruction(OP_HALT,vec![]) ;
-    m.explain()
-}

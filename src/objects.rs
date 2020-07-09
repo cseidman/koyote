@@ -22,7 +22,6 @@ pub struct ObjString {
 
 impl Obj for ObjString {
     fn ShowValue(&self) -> String {
-
         let s = self.value.clone() ;
         return s ;
     }
@@ -30,6 +29,7 @@ impl Obj for ObjString {
         return self.value.as_bytes().to_vec() ;
     }
 }
+
 impl ObjString {
     pub fn new(s:String) -> Box<ObjString> {
         return Box::new(ObjString{
@@ -44,6 +44,7 @@ pub struct ObjInteger {
     pub objtype: ObjType,
     pub value: u64
 }
+
 impl ObjInteger {
     pub fn new(i:u64) -> Box<ObjInteger> {
         return Box::new(ObjInteger{
@@ -53,8 +54,31 @@ impl ObjInteger {
     }
 }
 
-
 impl Obj for ObjInteger {
+    fn ShowValue(&self) -> String {
+        let val = self.value ;
+        return format!("{}",val) ;
+    }
+    fn ToBytes(&self) -> Vec<u8> {
+        return self.value.to_le_bytes().to_vec();
+    }
+}
+
+// ObjFloat ----------------
+pub struct ObjFloat {
+    pub objtype: ObjType,
+    pub value: f64
+}
+impl ObjFloat {
+    pub fn new(i:f64) -> Box<ObjFloat> {
+        return Box::new(ObjFloat{
+            objtype: VAL_FLOAT,
+            value: i
+        }) ;
+    }
+}
+
+impl Obj for ObjFloat {
     fn ShowValue(&self) -> String {
         let val = self.value ;
         return format!("{}",val) ;

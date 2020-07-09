@@ -23,10 +23,6 @@ impl CodeParser {
         };
     }
 
-    pub fn Advance(&mut self) {
-        self.previous =  self.current.clone();
-    }
-
     pub fn Previous(self) -> Token {
         return self.previous ;
     }

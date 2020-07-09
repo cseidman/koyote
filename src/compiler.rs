@@ -21,6 +21,7 @@ use crate::objects::{ObjInteger, ObjType};
 
 use ObjType::* ;
 
+
 pub struct Compiler {
     pub scanner:  Scanner ,
     pub parser:  CodeParser,
@@ -91,7 +92,8 @@ impl Compiler {
     }
 
     fn Advance(&mut self) {
-        self.parser.Advance() ;
+        self.parser.previous =  self.parser.current.clone();
+        self.parser.current = self.scanner.ScanToken() ;
     }
 
     fn Match(&mut self, t:TokenType) -> bool {
@@ -112,15 +114,20 @@ impl Compiler {
     }
 
     // Emit operations
-    fn EmitOp(&self, op: OpCode) {
-        self.module.AddInstruction(op,) ;
+    fn EmitOp(&mut self, op: OpCode) {
+        self.module.AddInstruction(op) ;
+    }
+
+    fn EmitOp2(&mut self, op: OpCode, index: u16 ) {
+        self.module.AddInstruction(op) ;
+        self.module.AddOperand(index) ;
     }
 
     // Expression functions
     fn Integer(&mut self, _canAssign:bool) {
         let intg:u64 = u64::Convert(&self.parser.previous.name);
-        let idx = self.module.AddConstant(ObjInteger::new(intg)) ;
-        self.EmitOp(OP_CONST(idx));
+        let idx = self.module.NewConstant(ObjInteger::new(intg)) ;
+        self.EmitOp2(OP_CONST, idx);
     }
 
     fn ParsePrecedence(&mut self, prec:Precedence) {

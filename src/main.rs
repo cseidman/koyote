@@ -13,6 +13,7 @@ mod opcodes ;
 mod instructions ;
 mod rules;
 mod objects;
+mod vm ;
 
 use errormgr::* ;
 
