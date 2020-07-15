@@ -7,18 +7,14 @@ const TMP:usize = 10000001 ; // Heap pointer starts here
 const MAX_FRAMES:usize = 1024 ;
 
 
-#[derive(Clone, Copy)]
+
 struct Frame {
-    //fp: usize
-}
-#[derive(Clone, Copy)]
-struct StackObj {
-    obj: Option<Box<dyn Obj>>
+
 }
 
 struct VM {
     // Memory
-    Memory: [StackObj;MEMORY_SLOTS],
+    Memory: [Box<Obj>;MEMORY_SLOTS],
 
     sp: usize, // Stack pointer
     hp: usize,  // Heap pointer
@@ -31,7 +27,7 @@ impl VM {
     pub fn new() -> VM {
 
         let v = VM {
-            Memory: [StackObj{obj:None};MEMORY_SLOTS],
+            Memory: [Box::new(Obj);MEMORY_SLOTS],
             Frames: [Frame{};MAX_FRAMES],
             sp: STACK,
             hp: HEAP,
