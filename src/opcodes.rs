@@ -15,6 +15,6 @@ pub fn OpLabel(opcode: &OpCode) -> String {
        OP_START => return "OP_START".to_string(),
        OP_CONST  => return "OP_CONST".to_string(),
        OP_PUSH => return "OP_PUSH".to_string(),
-        _ => return "UNKNOWN".to_string()
+        //_ => return "UNKNOWN".to_string()
     };
 }

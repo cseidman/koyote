@@ -6,13 +6,19 @@ const HEAP:usize = 10000000 ; // Heap pointer starts here(and works backwards
 const TMP:usize = 10000001 ; // Heap pointer starts here
 const MAX_FRAMES:usize = 1024 ;
 
-struct Frame {
 
+#[derive(Clone, Copy)]
+struct Frame {
+    //fp: usize
+}
+#[derive(Clone, Copy)]
+struct StackObj {
+    obj: Option<Box<dyn Obj>>
 }
 
 struct VM {
     // Memory
-    Memory: [Box<dyn Obj>;MEMORY_SLOTS],
+    Memory: [StackObj;MEMORY_SLOTS],
 
     sp: usize, // Stack pointer
     hp: usize,  // Heap pointer
@@ -24,10 +30,8 @@ struct VM {
 impl VM {
     pub fn new() -> VM {
 
-        let mem:[Box<dyn Obj>;MEMORY_SLOTS] = [;MEMORY_SLOTS];
-
         let v = VM {
-            Memory: mem,
+            Memory: [StackObj{obj:None};MEMORY_SLOTS],
             Frames: [Frame{};MAX_FRAMES],
             sp: STACK,
             hp: HEAP,
