@@ -4,7 +4,7 @@ const BLOCK_HEAP:usize = 65536 ;
 const BLOCK_STACK:usize = 8092 ;
 
 pub struct Memory {
-    Stack: [u8,],
+    Stack: Vec<u8>,
     Heap: Vec<u8>,
     Registers: [u32;1024],
 
@@ -26,6 +26,22 @@ impl Memory {
         };
     }
 
+    pub fn Push<T>(obj:T) {
+
+    }
+
+}
 
 
+
+// Unit tests ***************************
+
+#[cfg(test)]
+mod tests {
+    use crate::memory::Memory;
+    #[test]
+    fn test_mem() {
+        let mut m = Memory::new() ;
+
+    }
 }
