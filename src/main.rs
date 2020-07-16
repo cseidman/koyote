@@ -2,7 +2,10 @@
 #![allow(non_camel_case_types)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
+#![allow(unused_macros)]
+#![macro_use]
 
+mod macrolib;
 mod memory;
 mod utils;
 mod parser;
