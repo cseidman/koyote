@@ -9,7 +9,7 @@ pub enum ObjType {
 
 use ObjType::* ;
 
-pub trait Obj  {
+pub trait Obj<T>  {
     fn ShowValue(&self) -> String ;
     fn ToBytes(&self) -> Vec<u8> ;
 }
@@ -20,7 +20,7 @@ pub struct ObjString {
     pub value: String
 }
 
-impl Obj for ObjString {
+impl Obj<String> for ObjString {
     fn ShowValue(&self) -> String {
         let s = self.value.clone() ;
         return s ;
@@ -28,6 +28,7 @@ impl Obj for ObjString {
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.as_bytes().to_vec() ;
     }
+
 }
 
 impl ObjString {
@@ -40,13 +41,14 @@ impl ObjString {
 }
 
 // ObjInteger ----------------
+
 pub struct ObjInteger {
     pub objtype: ObjType,
-    pub value: u64
+    pub value: i64
 }
 
 impl ObjInteger {
-    pub fn new(i:u64) -> Box<ObjInteger> {
+    pub fn new(i:i64) -> Box<ObjInteger> {
         return Box::new(ObjInteger{
             objtype: VAL_INTEGER,
             value: i
@@ -62,6 +64,7 @@ impl Obj for ObjInteger {
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.to_le_bytes().to_vec();
     }
+
 }
 
 // ObjFloat ----------------
@@ -86,4 +89,5 @@ impl Obj for ObjFloat {
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.to_le_bytes().to_vec();
     }
+
 }

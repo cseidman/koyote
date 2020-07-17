@@ -125,7 +125,7 @@ impl Compiler {
 
     // Expression functions
     fn Integer(&mut self, _canAssign:bool) {
-        let intg:u64 = u64::Convert(&self.parser.previous.name);
+        let intg:i64 = i64::Convert(&self.parser.previous.name);
         let idx = self.module.NewConstant(ObjInteger::new(intg)) ;
         self.EmitOp2(OP_CONST, idx);
     }

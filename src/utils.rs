@@ -15,9 +15,9 @@ impl StringToInt<u32> for u32 {
         return s.parse::<u32>().unwrap() ;
     }
 }
-impl StringToInt<u64> for u64 {
-    fn Convert(s: &String) -> u64 {
-        return s.parse::<u64>().unwrap() ;
+impl StringToInt<i64> for i64 {
+    fn Convert(s: &String) -> i64 {
+        return s.parse::<i64>().unwrap() ;
     }
 }
 

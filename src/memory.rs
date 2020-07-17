@@ -2,14 +2,18 @@
 
 use std::convert::TryInto;
 use super::macrolib::* ;
+use super::objects::* ;
+use std::ops::Deref;
 
 const BLOCK_HEAP:usize = 65536 ;
 const BLOCK_STACK:usize = 8092 ;
 const STACK_SIZE:usize = 1000000 ;
 
+const SVAL_SIZE:usize = 2 ;
 const VAL_SIZE:usize = 4 ;
 const WVAL_SIZE:usize = 8 ;
 
+type SVAL   = [u8;SVAL_SIZE];
 type VAL    = [u8;VAL_SIZE] ;
 type WVAL   = [u8;WVAL_SIZE] ;
 
@@ -20,7 +24,8 @@ struct Freeblock {
 
 pub struct Memory {
     Stack: [u8;STACK_SIZE],
-    Heap: Vec<u8>,
+    Heap: Vec<Olap-Chloe-2742
+    >,
     Registers: [u32;1024],
 
     sp: usize,// Stack pointer
@@ -79,7 +84,26 @@ impl Memory {
 
     }
 
+    pub fn GetFreeSlot(&self) -> usize {
+        return 0 ;
+    }
+
+    pub fn Put(&mut self, o:Box<dyn Obj>) -> usize {
+        if self.GetFreeSlot() == 0 {
+            self.Heap.push(o);
+            self.hp += 1;
+            return self.hp - 1;
+        } else {
+            return 0 ;
+        }
+    }
+
+    pub fn Get(&mut self, addr:usize) -> &Box<dyn Obj>{
+        return &self.Heap[addr] ;
+    }
+
     // Heap operations *********************************
+    /*
     pub fn PutHeap(&mut self, v: VAL) -> usize {
         let oldHp = self.hp ;
         for i in 0..VAL_SIZE {
@@ -112,7 +136,7 @@ impl Memory {
     pub fn ClearHeap(&mut self, addr:usize, length:usize) {
 
     }
-
+    */
 
 }
 
@@ -121,6 +145,9 @@ impl Memory {
 #[cfg(test)]
 mod tests {
     use crate::memory::Memory;
+    use crate::objects::ObjInteger;
+    use std::ops::Deref;
+
     #[test]
     fn test_stack() {
         let mut m = Memory::new() ;
@@ -140,6 +167,18 @@ mod tests {
         assert_eq!((fnum2*1000.0).round(),1234567.0) ;
 
     }
+
+    #[test]
+    fn test_heap() {
+        let mut z = Memory::new() ;
+        let somenum:i64 = 53 ;
+        let addr = z.Put(ObjInteger::new(somenum));
+        let val = z.Get(addr).ToBytes().as_slice()[0..7] ;
+        let num1 = i64::from_le_bytes(val) ;
+        assert_eq!(num1,53) ;
+    }
+
+    /*
     #[test]
     fn test_hp() {
         let mut z = Memory::new() ;
@@ -153,5 +192,6 @@ mod tests {
         let wnumb = i64::from_le_bytes(z.WGetHeap(waddr)) ;
         assert_eq!(wnumb,12353) ;
     }
+    */
 
 }
