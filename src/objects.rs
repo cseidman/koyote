@@ -1,4 +1,5 @@
 use std::io::Bytes;
+use std::any::Any;
 
 pub enum ObjType {
     VAL_STRING,
@@ -9,9 +10,10 @@ pub enum ObjType {
 
 use ObjType::* ;
 
-pub trait Obj<T>  {
+pub trait Obj  {
     fn ShowValue(&self) -> String ;
     fn ToBytes(&self) -> Vec<u8> ;
+    fn GetType(&self) -> &dyn Any;
 }
 
 // ObjString ----------------
@@ -20,7 +22,7 @@ pub struct ObjString {
     pub value: String
 }
 
-impl Obj<String> for ObjString {
+impl Obj for ObjString {
     fn ShowValue(&self) -> String {
         let s = self.value.clone() ;
         return s ;
@@ -28,7 +30,9 @@ impl Obj<String> for ObjString {
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.as_bytes().to_vec() ;
     }
-
+    fn GetType(&self) -> &dyn Any {
+        return self ;
+    }
 }
 
 impl ObjString {
@@ -64,7 +68,9 @@ impl Obj for ObjInteger {
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.to_le_bytes().to_vec();
     }
-
+    fn GetType(&self) -> &dyn Any {
+        return self ;
+    }
 }
 
 // ObjFloat ----------------
@@ -89,5 +95,7 @@ impl Obj for ObjFloat {
     fn ToBytes(&self) -> Vec<u8> {
         return self.value.to_le_bytes().to_vec();
     }
-
+    fn GetType(&self) -> &dyn Any {
+        return self ;
+    }
 }

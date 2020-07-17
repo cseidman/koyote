@@ -24,8 +24,7 @@ struct Freeblock {
 
 pub struct Memory {
     Stack: [u8;STACK_SIZE],
-    Heap: Vec<Olap-Chloe-2742
-    >,
+    Heap: Vec<Box<dyn Obj>>,
     Registers: [u32;1024],
 
     sp: usize,// Stack pointer
@@ -165,7 +164,6 @@ mod tests {
         m.WPush(f64_bytes!(fnum1));
         let fnum2 = bytes_f64!(m.WPop());
         assert_eq!((fnum2*1000.0).round(),1234567.0) ;
-
     }
 
     #[test]
@@ -173,9 +171,9 @@ mod tests {
         let mut z = Memory::new() ;
         let somenum:i64 = 53 ;
         let addr = z.Put(ObjInteger::new(somenum));
-        let val = z.Get(addr).ToBytes().as_slice()[0..7] ;
-        let num1 = i64::from_le_bytes(val) ;
-        assert_eq!(num1,53) ;
+        let val:&ObjInteger = z.Get(addr).GetType().downcast_ref::<ObjInteger>().unwrap() ;
+
+        assert_eq!(val.value,53) ;
     }
 
     /*
