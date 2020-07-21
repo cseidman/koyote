@@ -1,6 +1,7 @@
 use super::instructions::* ;
 use super::opcodes::* ;
 use super::objects::* ;
+use super::utypes::* ;
 
 
 pub struct Module {
@@ -38,8 +39,8 @@ impl Module {
     }
 
     // Once an instruction has added, we can add operands to the same instruction
-    pub fn AddOperand(&mut self, index: u16) {
-        self.instructions[self.iCount].AddOperand(index) ;
+    pub fn AddOperand(&mut self, operand: VAL) {
+        self.instructions[self.iCount].AddOperand(operand) ;
         self.bytes+=2 ; // Add 2 to the total bytes
     }
 
@@ -71,7 +72,7 @@ impl Module {
             }
 
             for j in 0..self.instructions[i].operandCount {
-               print!("| {}",self.instructions[i].operands[j]) ;
+               print!("| {:?}",self.instructions[i].operands[j]) ;
             }
             println!()
 

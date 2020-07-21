@@ -1,4 +1,17 @@
+
 #![macro_use]
+
+use super::module::* ;
+
+macro_rules! EmitOp {
+    ($self:ident $instr:ident $($exp:expr)*) => {
+        $self.module.AddInstruction($instr) ;
+        $(
+            $self.module.AddOperand($exp);
+         )*
+    };
+}
+
 macro_rules! ar_elem {
     ( $ar:ident $($index:expr)+ ) => (
         [

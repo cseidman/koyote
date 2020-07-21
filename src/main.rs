@@ -5,6 +5,14 @@
 #![allow(unused_macros)]
 #![macro_use]
 
+const SVAL_SIZE:usize = 2 ;
+const VAL_SIZE:usize = 4 ;
+const WVAL_SIZE:usize = 8 ;
+
+//type SVAL   = [u8;SVAL_SIZE];
+//type VAL    = [u8;VAL_SIZE] ;
+//type WVAL   = [u8;WVAL_SIZE] ;
+
 mod macrolib;
 mod memory;
 mod utils;
@@ -19,6 +27,8 @@ mod instructions ;
 mod rules;
 mod objects;
 mod vm ;
+mod constants;
+mod utypes ;
 
 use errormgr::* ;
 
@@ -30,6 +40,8 @@ use std::fmt::Error;
 
 use crate::compiler::*;
 use std::borrow::{BorrowMut, Borrow};
+
+
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();

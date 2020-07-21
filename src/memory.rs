@@ -1,93 +1,85 @@
 // Memory
 
 use std::convert::TryInto;
+use std::mem;
+
 use super::macrolib::* ;
 use super::objects::* ;
-use std::ops::Deref;
+use super::constants::* ;
+use super::utypes::* ;
 
 const BLOCK_HEAP:usize = 65536 ;
 const BLOCK_STACK:usize = 8092 ;
 const STACK_SIZE:usize = 1000000 ;
-
-const SVAL_SIZE:usize = 2 ;
-const VAL_SIZE:usize = 4 ;
-const WVAL_SIZE:usize = 8 ;
-
-type SVAL   = [u8;SVAL_SIZE];
-type VAL    = [u8;VAL_SIZE] ;
-type WVAL   = [u8;WVAL_SIZE] ;
+const STATIC_SIZE:usize = 1024 ;
 
 struct Freeblock {
     Address: usize,
     Size: usize
 }
 
+pub struct HMemory {
+    Heap: Vec<VAL>,
+    hp: usize,// Heap pointer
+
+    FreeBlocks: Vec<Freeblock>
+}
+
+
 pub struct Memory {
-    Stack: [u8;STACK_SIZE],
-    Heap: Vec<Box<dyn Obj>>,
+    Static: Vec<VAL>,
+    Stack: Vec<VAL>,
     Registers: [u32;1024],
 
     sp: usize,// Stack pointer
-    hp: usize,// Heap pointer
     tmp: usize,// Temporary location
 
-    FreeBlocks: Vec<Freeblock>
 }
 
 impl Memory {
     pub fn new() -> Memory {
         return Memory {
-            Stack: [0;STACK_SIZE] ,
-            Heap: Vec::with_capacity(BLOCK_HEAP*1024) ,
+            Static: Vec::with_capacity(STATIC_SIZE),
+            Stack: Vec::with_capacity(STACK_SIZE) ,
             Registers: [0;1024],
             sp: 0,
-            hp: 0,
             tmp: 0,
-            FreeBlocks: vec![Freeblock{Address:0,Size:BLOCK_HEAP*1024}]
         };
     }
+
     // stack operations ********************************
     // 4 byte values
-    pub fn Push(&mut self,v: VAL) {
-        for i in  0 .. VAL_SIZE-1 {
-            self.Stack[self.sp+i] = v[i] ;
-        }
-        self.sp+=VAL_SIZE ;
+    pub fn Push(&mut self, v: VAL) {
+        self.Stack.push(v);
+        self.sp+=1 ;
     }
 
-    pub fn Pop(&mut self) -> [u8;4] {
-        self.sp-=VAL_SIZE ;
+    pub fn WPush(&mut self, v: WVAL) {
 
-        let from = self.sp ;
-        let to = self.sp+VAL_SIZE ;
-
-        return self.Stack[from .. to].try_into().expect(format!("Expected a {} byte array from {} to {}",VAL_SIZE,from,to).as_str())
-
+        self.Stack.push([v[0],v[1],v[2],v[3]]);
+        self.Stack.push([v[4],v[5],v[6],v[7]]);
+        self.sp+=2 ;
     }
 
-    // 8 byte values
-    pub fn WPush(&mut self,v: WVAL) {
-        for i in  0 .. WVAL_SIZE-1 {
-            self.Stack[self.sp+i] = v[i] ;
-        }
-        self.sp+=WVAL_SIZE ;
+    pub fn Pop(&mut self) -> VAL {
+        self.sp-=1 ;
+        return self.Stack[self.sp];
     }
 
-    pub fn WPop(&mut self) -> WVAL {
-        self.sp-=WVAL_SIZE ;
-
-        let from = self.sp ;
-        let to = self.sp+WVAL_SIZE ;
-
-        return self.Stack[from .. to].try_into().expect(format!("Expected a {} byte array from {} to {}",VAL_SIZE,from,to).as_str())
-
+    fn WPop(&mut self) -> WVAL {
+        let b = self.Stack.pop().unwrap();
+        let a = self.Stack.pop().unwrap() ;
+        return [
+            a[0],a[1],a[2],a[3],
+            b[0],b[1],b[2],b[3]
+        ] ;
     }
 
     pub fn GetFreeSlot(&self) -> usize {
         return 0 ;
     }
 
-    pub fn Put(&mut self, o:Box<dyn Obj>) -> usize {
+    pub fn Put(&mut self, o:VAL) -> usize {
         if self.GetFreeSlot() == 0 {
             self.Heap.push(o);
             self.hp += 1;
@@ -97,46 +89,9 @@ impl Memory {
         }
     }
 
-    pub fn Get(&mut self, addr:usize) -> &Box<dyn Obj>{
-        return &self.Heap[addr] ;
+    pub fn Get(&mut self, addr:usize) -> VAL {
+        return self.Heap[addr] ;
     }
-
-    // Heap operations *********************************
-    /*
-    pub fn PutHeap(&mut self, v: VAL) -> usize {
-        let oldHp = self.hp ;
-        for i in 0..VAL_SIZE {
-            self.Heap.push(v[i]) ;
-        }
-
-        self.hp+=VAL_SIZE ;
-        return oldHp ;
-    }
-
-    pub fn GetHeap(&mut self, addr:usize) -> VAL {
-        return self.Heap[addr..addr+VAL_SIZE].try_into().expect("Expected 4 bytes from the heap") ;
-    }
-
-    pub fn WPutHeap(&mut self, v: WVAL) -> usize {
-        let oldHp = self.hp ;
-        for i in 0..WVAL_SIZE {
-            self.Heap.push(v[i]) ;
-        }
-
-        self.hp+=WVAL_SIZE ;
-        return oldHp ;
-    }
-
-    pub fn WGetHeap(&mut self, addr:usize) -> WVAL {
-        return self.Heap[addr..addr+WVAL_SIZE].try_into().expect("Expected 8 bytes from the heap") ;
-    }
-
-    // Clears a section of the heap for use
-    pub fn ClearHeap(&mut self, addr:usize, length:usize) {
-
-    }
-    */
-
 }
 
 // Unit tests ***************************
@@ -144,7 +99,9 @@ impl Memory {
 #[cfg(test)]
 mod tests {
     use crate::memory::Memory;
-    use crate::objects::ObjInteger;
+    use crate::objects::*;
+    use crate::constants::*;
+    use crate::objects::ObjType::VAL_I32;
     use std::ops::Deref;
 
     #[test]
@@ -169,9 +126,12 @@ mod tests {
     #[test]
     fn test_heap() {
         let mut z = Memory::new() ;
-        let somenum:i64 = 53 ;
-        let addr = z.Put(ObjInteger::new(somenum));
-        let val:&ObjInteger = z.Get(addr).GetType().downcast_ref::<ObjInteger>().unwrap() ;
+        let mut c = ConstantPool::new(64) ;
+
+        let somenum:i32 = 53 ;
+
+        let addr = z.Put(ObjInteger::new(somenum).to_bytes());
+        let val = ObjInteger::from_bytes(z.Get(addr)) ;
 
         assert_eq!(val.value,53) ;
     }

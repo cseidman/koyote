@@ -1,10 +1,13 @@
 use std::io::Bytes;
 use std::any::Any;
+use super::utypes::* ;
 
 pub enum ObjType {
     VAL_STRING,
-    VAL_INTEGER,
-    VAL_FLOAT,
+    VAL_I32,
+    VAL_I64,
+    VAL_F32,
+    VAL_F64,
     VAL_BOOL
 }
 
@@ -12,8 +15,19 @@ use ObjType::* ;
 
 pub trait Obj  {
     fn ShowValue(&self) -> String ;
-    fn ToBytes(&self) -> Vec<u8> ;
-    fn GetType(&self) -> &dyn Any;
+}
+
+impl Obj for ObjInteger {
+    fn ShowValue(&self) -> String {
+        let val = self.value ;
+        return format!("{}",val) ;
+    }
+}
+// ObjBigInteger ----------------
+
+pub struct ObjBigInteger {
+    pub objtype: ObjType,
+    pub value: i64
 }
 
 // ObjString ----------------
@@ -27,20 +41,15 @@ impl Obj for ObjString {
         let s = self.value.clone() ;
         return s ;
     }
-    fn ToBytes(&self) -> Vec<u8> {
-        return self.value.as_bytes().to_vec() ;
-    }
-    fn GetType(&self) -> &dyn Any {
-        return self ;
-    }
+
 }
 
 impl ObjString {
-    pub fn new(s:String) -> Box<ObjString> {
-        return Box::new(ObjString{
+    pub fn new(s:String) -> ObjString {
+        return ObjString {
             objtype: VAL_STRING,
             value: s
-        }) ;
+        } ;
     }
 }
 
@@ -48,42 +57,82 @@ impl ObjString {
 
 pub struct ObjInteger {
     pub objtype: ObjType,
-    pub value: i64
+    pub value: i32
 }
 
 impl ObjInteger {
-    pub fn new(i:i64) -> Box<ObjInteger> {
-        return Box::new(ObjInteger{
-            objtype: VAL_INTEGER,
+    pub fn new(i:i32) -> ObjInteger {
+        return ObjInteger {
+            objtype: VAL_I32,
             value: i
-        }) ;
+        } ;
     }
+
+    pub fn from_bytes(b:[u8;4]) -> ObjInteger {
+        return ObjInteger {
+            objtype: VAL_I32 ,
+            value: i32::from_le_bytes(b)
+        }
+    }
+
+    pub fn to_bytes(&self) -> [u8;4] {
+        return self.value.to_le_bytes() ;
+    }
+
 }
 
-impl Obj for ObjInteger {
+impl ObjBigInteger {
+    pub fn new(i:i64) -> ObjBigInteger {
+        return ObjBigInteger {
+            objtype: VAL_I64,
+            value: i
+        } ;
+    }
+
+    pub fn from_bytes(b:[u8;8]) -> ObjBigInteger {
+        return ObjBigInteger {
+            objtype: VAL_I64 ,
+            value: i64::from_le_bytes(b)
+        }
+    }
+
+    pub fn to_bytes(&self) -> [u8;8] {
+        return self.value.to_le_bytes() ;
+    }
+
+}
+
+impl Obj for ObjBigInteger {
     fn ShowValue(&self) -> String {
         let val = self.value ;
         return format!("{}",val) ;
     }
-    fn ToBytes(&self) -> Vec<u8> {
-        return self.value.to_le_bytes().to_vec();
-    }
-    fn GetType(&self) -> &dyn Any {
-        return self ;
-    }
+
+
 }
 
 // ObjFloat ----------------
 pub struct ObjFloat {
     pub objtype: ObjType,
-    pub value: f64
+    pub value: f32
 }
 impl ObjFloat {
-    pub fn new(i:f64) -> Box<ObjFloat> {
-        return Box::new(ObjFloat{
-            objtype: VAL_FLOAT,
+    pub fn new(i:f32) -> ObjFloat {
+        return ObjFloat{
+            objtype: VAL_F32,
             value: i
-        }) ;
+        } ;
+    }
+
+    pub fn from_bytes(b:[u8;4]) -> ObjFloat {
+        return ObjFloat {
+            objtype: VAL_F32 ,
+            value: f32::from_le_bytes(b)
+        }
+    }
+
+    pub fn to_bytes(&self) -> [u8;4] {
+        return self.value.to_le_bytes() ;
     }
 }
 
@@ -92,10 +141,72 @@ impl Obj for ObjFloat {
         let val = self.value ;
         return format!("{}",val) ;
     }
-    fn ToBytes(&self) -> Vec<u8> {
-        return self.value.to_le_bytes().to_vec();
+
+}
+
+// ObjBigFloat
+pub struct ObjBigFloat {
+    pub objtype: ObjType,
+    pub value: f64
+}
+impl ObjBigFloat{
+    pub fn new(i:f64) -> ObjBigFloat {
+        return ObjBigFloat {
+            objtype: VAL_F64,
+            value: i
+        } ;
     }
-    fn GetType(&self) -> &dyn Any {
-        return self ;
+
+    pub fn from_bytes(b:[u8;8]) -> ObjBigFloat {
+        return ObjBigFloat {
+            objtype: VAL_F64 ,
+            value: f64::from_le_bytes(b)
+        }
     }
+
+    pub fn to_bytes(&self) -> [u8;8] {
+        return self.value.to_le_bytes() ;
+    }
+}
+
+impl Obj for ObjBigFloat {
+    fn ShowValue(&self) -> String {
+        let val = self.value ;
+        return format!("{}",val) ;
+    }
+
+}
+
+// ObjBool
+pub struct ObjBool {
+    pub objtype: ObjType,
+    pub value: bool
+}
+
+impl ObjBool{
+    pub fn new(i:bool) -> ObjBool {
+        return ObjBool {
+            objtype: VAL_F64,
+            value: i
+        } ;
+    }
+
+    pub fn from_bytes(b:VAL) -> ObjBool {
+        return ObjBool {
+            objtype: VAL_BOOL ,
+            value: i32::from_le_bytes(b) != 0
+        }
+    }
+
+    pub fn to_bytes(&self) -> VAL {
+        return (self.value as i32).to_le_bytes() ;
+    }
+}
+
+impl Obj for ObjBool {
+    fn ShowValue(&self) -> String {
+        let val = self.value ;
+        return format!("{}",val) ;
+    }
+
 }

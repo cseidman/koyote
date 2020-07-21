@@ -7,6 +7,9 @@ use super::rules::* ;
 use super::rules::Precedence::* ;
 use super::module::* ;
 use super::instructions::* ;
+use super::opcodes::* ;
+use super::macrolib::* ;
+use super::utypes::* ;
 
 use std::ops::Deref;
 
@@ -14,7 +17,7 @@ use std::mem;
 use crate::tokens::TokenType;
 use crate::errormgr::HandleError;
 use crate::module::Module;
-use crate::opcodes::OpCode::OP_CONST;
+use crate::opcodes::OpCode::*;
 use crate::opcodes::OpCode;
 use crate::utils::StringToInt;
 use crate::objects::{ObjInteger, ObjType};
@@ -70,6 +73,7 @@ impl Compiler {
     fn Statement(&mut self) {
         let tok = &self.parser.previous ;
         match tok {
+
             _ => self.ExpressionStatement()
         }
     }
@@ -113,21 +117,11 @@ impl Compiler {
         self.Consume(T_RIGHT_PAREN, "Expect ')' after expression");
     }
 
-    // Emit operations
-    fn EmitOp(&mut self, op: OpCode) {
-        self.module.AddInstruction(op) ;
-    }
-
-    fn EmitOp2(&mut self, op: OpCode, index: u16 ) {
-        self.module.AddInstruction(op) ;
-        self.module.AddOperand(index) ;
-    }
-
     // Expression functions
     fn Integer(&mut self, _canAssign:bool) {
-        let intg:i64 = i64::Convert(&self.parser.previous.name);
-        let idx = self.module.NewConstant(ObjInteger::new(intg)) ;
-        self.EmitOp2(OP_CONST, idx);
+        let intg:i32 = self.parser.previous.name.parse::<i32>().unwrap();
+        let b = intg.to_le_bytes() ;
+        EmitOp!(self OP_IPUSH b);
     }
 
     fn ParsePrecedence(&mut self, prec:Precedence) {
