@@ -13,7 +13,7 @@ macro_rules! EmitOp {
 }
 
 macro_rules! ar_elem {
-    ( $ar:ident $($index:expr)+ ) => (
+    ($ar:ident $($index:expr)+ ) => (
         [
             $(
                 $ar[$index],

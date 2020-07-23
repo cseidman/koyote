@@ -17,13 +17,11 @@ use std::mem;
 use crate::tokens::TokenType;
 use crate::errormgr::HandleError;
 use crate::module::Module;
-use crate::opcodes::OpCode::*;
-use crate::opcodes::OpCode;
 use crate::utils::StringToInt;
+use crate::opcodes::* ;
 use crate::objects::{ObjInteger, ObjType};
 
 use ObjType::* ;
-
 
 pub struct Compiler {
     pub scanner:  Scanner ,

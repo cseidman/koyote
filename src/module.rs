@@ -64,7 +64,7 @@ impl Module {
         println!("Module: {}",self.name) ;
         println!("============================") ;
         for i in 0..self.iCount {
-            let opc = &self.instructions[i].opcode ;
+            let opc = self.instructions[i].opcode ;
             print!("{number:>05} | {width:<15} ",number=i,width=OpLabel(opc)) ;
 
             if self.instructions[i].operandCount == 0 {

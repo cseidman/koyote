@@ -1,6 +1,6 @@
 pub struct ConstantPool {
     constants: Vec<String> ,
-    cp: usize
+    cp: i32
 }
 
 impl ConstantPool {
@@ -10,14 +10,14 @@ impl ConstantPool {
             cp: 0
         }
     }
-    pub fn Add(&mut self,s: String) -> usize {
-        self.constants.push(s) ;
+    pub fn Add(&mut self,s: &str) -> i32 {
+        self.constants.push(s.to_string()) ;
         self.cp+=1 ;
         return self.cp -1 ;
     }
 
-    pub fn Get(&self,addr: usize) -> String  {
-        return self.constants[addr].clone() ;
+    pub fn Get(&self,addr: i32) -> String  {
+        return self.constants[addr as usize].clone() ;
     }
 }
 
@@ -30,8 +30,8 @@ mod test {
         // Init
         let mut c = ConstantPool::new(64) ;
         // Add
-        let sconst = "This is a test of the constant pool system".to_string() ;
-        let key = c.Add(sconst.clone()) ;
+        let sconst = "This is a test of the constant pool system" ;
+        let key = c.Add(sconst) ;
         // Get
         let val = c.Get(key) ;
         assert_eq!(sconst,val) ;
