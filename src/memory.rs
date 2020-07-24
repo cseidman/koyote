@@ -19,10 +19,38 @@ struct Freeblock {
     Size: usize
 }
 
+// 64K
+pub struct Extent {
+    Block: [u8;64000] ;
+}
+
+impl Extent {
+    pub fn new() -> Extent {
+        return Extent {
+            Block: [0;64000]
+        };
+    }
+    // 4 bytes * 16000
+    // 1536 bytes remaining
+    // Bytes:
+    // 1-2: Pages in use (0-8000)
+    pub fn AllocatePage(&mut self) -> usize {
+        for i in 1..8000 {
+            let offset = 1536 + i ;
+            if self.Block[offset] == 0 {
+                self.Block[offset] = 1; // Set to allocated
+                return i ;
+            }
+        }
+        return 0 ;
+    }
+
+}
+
+
 pub struct HMemory {
     Heap: Vec<VAL>,
     hp: usize,// Heap pointer
-
 }
 
 impl HMemory {
