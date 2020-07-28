@@ -19,9 +19,21 @@ struct Freeblock {
     Size: usize
 }
 
-// 64K
+/*
+Extent has a total of 65536 of memory
+Extent: 8 x 8k Pages
+Page: 4b x 2000 DWords
+
+Extent (bytes):
+1:        Number of pages used (0-8)
+2-3:      Number of DWords used in page 1
+4-5:      Number of DWords used in page 2
+..
+16-17:    Number of DWords used in page 8
+
+*/
 pub struct Extent {
-    Block: [u8;64000] ;
+    Block: [u8;64000]
 }
 
 impl Extent {
@@ -50,6 +62,7 @@ impl Extent {
 
 pub struct HMemory {
     Heap: Vec<VAL>,
+    Extents: Vec<Extent>,
     hp: usize,// Heap pointer
 }
 
