@@ -1,4 +1,4 @@
 # koyote
-Coyote port to Rust
+Coyote port from Go to Rust
 
 
