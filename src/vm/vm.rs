@@ -163,14 +163,14 @@ pub fn ExecStack(heap: &mut Vec<ObjVal>,code: &Vec<u8>) {
                 f.Push(f.locals[addr])
             } ,
             OP_MALLOC => {
-                heap.push(ObjVal::NULL);
-                let addr = heap.len() as i64;
+                &heap.push(ObjVal::NULL);
+                let addr = (heap.len()-1) as i64;
                 f.Push(addr.to_le_bytes())
             },
             OP_SET_IHEAP => {
-                let o = ObjVal::INT(i64::from_le_bytes(f.Pop())) ;
+                let obj = ObjVal::INT(i64::from_le_bytes(f.Pop())) ;
                 let loc = i64::from_le_bytes(f.Pop()) as usize ;
-                heap[loc] = o ;
+                heap[loc] = obj ;
             },
             OP_GET_IHEAP => {
                 let loc = i64::from_le_bytes(f.Pop()) as usize;
@@ -236,10 +236,20 @@ mod test {
         PushCmd(&mut ins, OP_GETLOCAL, 0) ;
         PushInstr(&mut ins, OP_IPRINT) ;
 
+        PushInstr(&mut ins, OP_MALLOC); // Should be 0
         PushCmd(&mut ins, OP_IPUSH, 6) ;
+        PushInstr(&mut ins, OP_SET_IHEAP) ;
+
+        PushInstr(&mut ins, OP_MALLOC); // Should be 1
         PushCmd(&mut ins, OP_IPUSH, 4) ;
+        PushInstr(&mut ins, OP_SET_IHEAP) ;
+
+        PushCmd(&mut ins, OP_IPUSH, 0) ;
+        PushInstr(&mut ins, OP_GET_IHEAP) ;
+        PushCmd(&mut ins, OP_IPUSH, 1) ;
+        PushInstr(&mut ins, OP_GET_IHEAP) ;
         PushInstr(&mut ins, OP_IADD) ;
-        PushInstr(&mut ins, OP_IPRINT) ;
+        PushInstr(&mut ins, OP_IPRINT) ; // Should print "10"
 
         let mut v = Arc::new(Mutex::new(ins)) ;
 
