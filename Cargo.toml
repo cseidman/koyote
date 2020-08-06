@@ -1,9 +1,18 @@
 [package]
-name = "bnftree"
+name = "koyote"
 version = "0.1.0"
 authors = ["Claude Seidman <claude.seidman@gmail.com>"]
 edition = "2018"
 
+[lib]
+name = "koyote"
+path = "src/lib.rs"
+
+[[bin]]
+name = "koyote"
+path = "src/main.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = "2.33.1"

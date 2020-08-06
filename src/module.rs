@@ -1,8 +1,12 @@
-use super::instructions::* ;
-use super::opcodes::* ;
-use super::objects::* ;
-use super::utypes::* ;
 
+use crate::instructions::{Instruction};
+use crate::opcodes::* ;
+use crate::objects::datatypes::* ;
+use crate::tokens::{Token,TokenType};
+
+use ObjType::* ;
+use TokenType::* ;
+use crate::{VAL, WVAL} ;
 
 pub struct Module {
     pub name: String,
@@ -11,7 +15,7 @@ pub struct Module {
     pub instructions: Vec<Instruction>,
     pub iCount: usize,
 
-    pub constants: Vec<Box<dyn Obj>>,
+    pub constants: Vec<ObjVal>,
     pub iConst: u16,
     pub bytes: usize
 }
@@ -24,7 +28,7 @@ impl Module {
             isLoaded: false,
             instructions: Vec::<Instruction>::new(),
             iCount: 0,
-            constants: Vec::<Box<dyn Obj>>::new(),
+            constants: Vec::<ObjVal>::new(),
             iConst: 0,
             bytes: 0
         };
@@ -32,7 +36,7 @@ impl Module {
 
     // Add the given object to the current module's constant pool
     // and return the index number of the new constant
-    pub fn NewConstant(&mut self, o: Box<dyn Obj>) -> u16 {
+    pub fn NewConstant(&mut self, o: ObjVal) -> u16 {
         self.constants.push(o) ;
         self.iConst+=1 ;
         return self.iConst-1 ;

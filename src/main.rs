@@ -5,45 +5,46 @@
 #![allow(unused_macros)]
 #![macro_use]
 
-const SVAL_SIZE:usize = 2 ;
-const VAL_SIZE:usize = 4 ;
-const WVAL_SIZE:usize = 8 ;
-
-//type SVAL   = [u8;SVAL_SIZE];
-//type VAL    = [u8;VAL_SIZE] ;
-//type WVAL   = [u8;WVAL_SIZE] ;
-
-mod macrolib;
-mod memory;
-mod utils;
-mod parser;
-mod scanner ;
-mod tokens ;
-mod errormgr ;
-mod compiler ;
-mod module ;
-mod opcodes ;
-mod instructions ;
-mod rules;
-mod objects;
-mod vm ;
-mod constants;
-mod utypes ;
-
-use errormgr::* ;
+extern crate clap ;
 
 use std::fs ;
 use std::path::*;
 use std::env ;
 use std::io::{self,Write};
 use std::fmt::Error;
-
-use crate::compiler::*;
 use std::borrow::{BorrowMut, Borrow};
+use clap::{Arg, App};
 
-
+use koyote::compiler::{Compiler} ;
+use koyote::errormgr::{HandleError} ;
+use koyote::utils::conversion::* ;
 
 fn main() -> io::Result<()> {
+/*
+    App::new("Coyote")
+        .version("1.0")
+        .author("Claude Seidman claude@intellixus.com")
+        .arg(Arg::with_name("file")
+            .short("f") // allow --file
+            .takes_value(true)
+            .help("Coyote program to run")
+            .required(false)
+        .arg(Arg::with_name("debug")
+            .short("d")
+            .multiple(true)
+            .help("Sets the level of debugging information"))
+        .get_matches());
+
+    // now add in the argument we want to parse
+    let app = app.arg(file_option);
+
+    // extract the matches
+    let matches = app.get_matches();
+
+
+    // Extract the actual name
+    let name = matches.value_of("file").expect("No file name provided: ");
+*/
     let args: Vec<String> = env::args().collect();
     if args.len() == 1 {
         println!("Starting REPL") ;
@@ -53,8 +54,6 @@ fn main() -> io::Result<()> {
 }
 
 pub fn Repl() -> io::Result<()> {
-
-    //let app = App::new() ;
 
     let mut compiler = Compiler::new("main".to_string()) ;
 
@@ -72,7 +71,6 @@ pub fn Repl() -> io::Result<()> {
         if buffer.trim().to_uppercase() == "\\Q".to_string() {
            break ;
         }
-
 
         compiler.Compile(&buffer);
 

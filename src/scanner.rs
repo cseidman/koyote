@@ -1,7 +1,7 @@
 
-use super::tokens::TokenType ;
-use super::tokens::Token;
-use super::tokens::TokenType::* ;
+use crate::tokens::TokenType ;
+use crate::tokens::Token;
+use crate::tokens::TokenType::* ;
 
 #[derive(Clone)]
 pub struct Scanner {

@@ -1,27 +1,19 @@
-
-use super::scanner::*;
-use super::parser::*;
-use super::tokens::TokenType::*;
-use super::tokens::Token;
-use super::rules::* ;
-use super::rules::Precedence::* ;
-use super::module::* ;
-use super::instructions::* ;
-use super::opcodes::* ;
-use super::macrolib::* ;
-use super::utypes::* ;
-
 use std::ops::Deref;
-
 use std::mem;
-use crate::tokens::TokenType;
+
 use crate::errormgr::HandleError;
 use crate::module::Module;
-use crate::utils::StringToInt;
 use crate::opcodes::* ;
-use crate::objects::{ObjInteger, ObjType};
+use crate::objects::datatypes::*;
+use crate::scanner::{Scanner};
+use crate::parser::{CodeParser};
+use crate::rules::{ParseRule,Precedence};
+use crate::tokens::{Token,TokenType};
+use crate::utils::conversion::StringToInt;
 
 use ObjType::* ;
+use TokenType::* ;
+use Precedence::* ;
 
 pub struct Compiler {
     pub scanner:  Scanner ,

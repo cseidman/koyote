@@ -12,6 +12,7 @@ macro_rules! EmitOp {
     };
 }
 
+
 macro_rules! ar_elem {
     ($ar:ident $($index:expr)+ ) => (
         [
@@ -31,5 +32,11 @@ macro_rules! bytes_f64 {
 macro_rules! f64_bytes {
     ($fnum:expr) => (
         $fnum.to_bits().to_be_bytes() ;
+    )
+}
+
+macro_rules! i64_bytes {
+    ($fnum:expr) => (
+        $fnum.to_le_bytes() ;
     )
 }

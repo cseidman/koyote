@@ -1,6 +1,6 @@
 pub struct ConstantPool {
     constants: Vec<String> ,
-    cp: i32
+    cp: i64
 }
 
 impl ConstantPool {
@@ -10,13 +10,13 @@ impl ConstantPool {
             cp: 0
         }
     }
-    pub fn Add(&mut self,s: &str) -> i32 {
+    pub fn Add(&mut self,s: &str) -> i64 {
         self.constants.push(s.to_string()) ;
         self.cp+=1 ;
         return self.cp -1 ;
     }
 
-    pub fn Get(&self,addr: i32) -> String  {
+    pub fn Get(&self,addr: i64) -> String  {
         return self.constants[addr as usize].clone() ;
     }
 }
