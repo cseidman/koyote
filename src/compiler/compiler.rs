@@ -7,8 +7,8 @@ use crate::opcodes::* ;
 use crate::objects::datatypes::*;
 use crate::scanner::{Scanner};
 use crate::parser::{CodeParser};
-use crate::rules::{ParseRule,Precedence};
-use crate::tokens::{Token,TokenType};
+use crate::rules::{ParseRule, Precedence};
+use crate::tokens::{Token, TokenType, TokenList};
 use crate::utils::conversion::StringToInt;
 
 use ObjType::* ;
@@ -18,7 +18,7 @@ use Precedence::* ;
 pub struct Compiler {
     pub scanner:  Scanner ,
     pub parser:  CodeParser,
-    pub rules: [ParseRule;47],
+    pub rules: Vec<ParseRule>,
     pub module: Box<Module>
 }
 
@@ -72,13 +72,18 @@ impl Compiler {
         self.Expression() ;
     }
 
-    pub fn GetRules() -> [ParseRule;47] {
+    pub fn GetRules() -> Vec<ParseRule> {
+        use Precedence::* ;
 
-        let mut p = [ParseRule{prefix: None, infix: None, prec: PREC_NONE};47] ;
+        let mut v = vec![
+            ParseRule{prefix: None, infix: None, prec: PREC_NONE}; TokenList.len()
+        ];
 
-        p[T_INTEGER as usize] =  ParseRule{prefix: Some(Compiler::Integer), infix: None, prec: PREC_NONE};
+        v[T_LEFT_PAREN as usize]    =  ParseRule{prefix: Some(Compiler::Grouping), infix: None, prec: PREC_NONE} ;
+        v[T_INTEGER as usize]       =  ParseRule{prefix: Some(Compiler::Integer), infix: None, prec: PREC_NONE} ;
+        v[T_MINUS as usize]         =  ParseRule{prefix: Some(Compiler::Unary), infix: Some(Compiler::Binary), prec: PREC_TERM} ;
 
-        return p ;
+        return v ;
     }
 
     fn GetRule(&self, t:TokenType) -> ParseRule {
@@ -113,6 +118,17 @@ impl Compiler {
         let b = intg.to_le_bytes() ;
         EmitOp!(self OP_IPUSH b);
     }
+
+    fn Unary(&mut self, _canAssign:bool) {
+        let operatorType = self.parser.previous.tokenType ;
+        self.ParsePrecedence(PREC_UNARY) ;
+    }
+
+    fn Binary(&mut self, _canAssign:bool) {
+        let operatorType = self.parser.previous.tokenType ;
+        self.ParsePrecedence(PREC_UNARY) ;
+    }
+
 
     fn ParsePrecedence(&mut self, prec:Precedence) {
 

@@ -16,7 +16,9 @@ pub mod parser;
 pub mod scanner;
 pub mod tokens;
 pub mod errormgr;
-pub mod compiler;
+pub mod compiler {
+    pub mod compiler ;
+}
 pub mod module ;
 pub mod opcodes ;
 pub mod instructions ;

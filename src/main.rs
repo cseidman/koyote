@@ -15,7 +15,7 @@ use std::fmt::Error;
 use std::borrow::{BorrowMut, Borrow};
 use clap::{Arg, App};
 
-use koyote::compiler::{Compiler} ;
+use koyote::compiler::compiler::{Compiler} ;
 use koyote::errormgr::{HandleError} ;
 use koyote::utils::conversion::* ;
 

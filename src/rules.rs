@@ -1,6 +1,7 @@
 use self::Precedence::* ;
-use super::tokens::TokenType::* ;
-use super::compiler::*;
+use crate::tokens::TokenType::* ;
+use crate::compiler::compiler::*;
+use crate::tokens::{TokenType};
 
 pub type ParseFn = fn(&mut Compiler,bool) ;
 
@@ -30,6 +31,8 @@ pub enum Precedence {
     PREC_LIST,
     PREC_PRIMARY
 }
+
+
 
 
 
