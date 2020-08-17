@@ -15,7 +15,6 @@ pub struct Scanner {
 impl Scanner {
 
     pub fn new() -> Self {
-        // Making sure there's an end of file marker at the end of he file
         let s = "" ;
         let code_string:Vec<char> = s.chars().collect();
         return Scanner{
@@ -30,8 +29,8 @@ impl Scanner {
     pub fn LoadSource(&mut self, s: &String) {
 
         let mut code_string:Vec<char> = s.chars().collect();
-        code_string.push('\0');
-        self.code = code_string ;
+        code_string.push('\0') ;
+        self.code = code_string.clone() ;
         self.start = 0 ;
         self.current = 0 ;
         self.codeLength = self.code.len() ;
@@ -39,13 +38,13 @@ impl Scanner {
 
     pub fn ScanToken(&mut self) -> Token {
 
-        self.skipWhitespace();
-
-        self.start = self.current;
-
         if self.isAtEnd() {
             return self.makeEOFToken();
         }
+
+        self.skipWhitespace();
+
+        self.start = self.current;
 
         let c = self.advance();
 
@@ -58,6 +57,8 @@ impl Scanner {
         }
 
         match c {
+            '\n'=> return self.makeToken(T_CR),
+            '\0'=> return self.makeToken(T_EOF),
             '(' => return self.makeToken(T_LEFT_PAREN),
             ')' => return self.makeToken(T_RIGHT_PAREN),
             '{' => return self.makeToken(T_LEFT_BRACE),
@@ -92,6 +93,10 @@ impl Scanner {
         }
     }
 
+    //pub fn StartToken(&mut self) -> Token {
+    //    return self.makeToken(T_START) ;
+    //}
+
     fn errorToken(&mut self, message: &str) -> Token {
         return Token {
             tokenType: T_ERROR,
@@ -112,7 +117,7 @@ impl Scanner {
     }
 
     fn isDigit(&mut self, c: char) -> bool {
-        return c >= '0' && c <= '9';
+        return c.is_ascii_digit();
     }
 
     fn number(&mut self) -> Token {
@@ -121,7 +126,6 @@ impl Scanner {
 
             let mut selfPeek = self.peek() ;
             let mut isDigit  = self.isDigit(selfPeek) ;
-
 
             if isDigit {
                 self.advance();
@@ -195,7 +199,7 @@ impl Scanner {
         return self.makeToken(idType) ;
     }
 
-    fn currentChar(&mut self) -> char{
+    fn currentChar(&mut self) -> char {
         return self.code[self.current];
     }
 
@@ -222,7 +226,7 @@ impl Scanner {
 
     fn makeToken(&self, ttype: TokenType) -> Token {
 
-        let slice:Vec<char> = self.code[self.start..=self.current].to_vec();
+        let slice:Vec<char> = self.code[self.start..self.current].to_vec();
 
         return Token {
             tokenType: ttype,
@@ -249,17 +253,18 @@ impl Scanner {
     }
 
     fn isAtEnd(&mut self) -> bool {
-        return self.currentChar() == '\0';
+        return self.current >= self.code.len();
     }
 
     fn isAlpha(&mut self, c: char) -> bool {
-        return (c >= 'a' && c <= 'z') ||
-            (c >= 'A' && c <= 'Z') ||
-            c == '_';
+        return c.is_alphabetic() ;
     }
 
     fn skipWhitespace(&mut self) {
         loop {
+            if self.isAtEnd() {
+                return ;
+            }
             let c = self.peek();
             match c {
                 ' ' | '\r' | '\t' => {self.advance();},

@@ -2,12 +2,14 @@ use std::convert::TryInto;
 use std::thread::*;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
+use std::io::{self,Write};
 
 use crate::memory::ram::*;
 use crate::opcodes::*;
 use crate::objects::datatypes::* ;
 use crate::constants::ConstantPool;
 use crate::{WVAL};
+use crate::compiler::compiler::* ;
 
 const MAX_FRAMES:usize = 1024 ;
 
@@ -44,16 +46,21 @@ struct ByteCode {
 }
 
 impl ByteCode {
-    pub fn new(v:&Vec<u8>) -> ByteCode {
+    pub fn new() -> ByteCode {
         return ByteCode {
-            Code: v.to_vec(),
+            Code: Vec::new(),
             p: 0
         }
     }
 
     pub fn Next(&mut self) -> OpCode {
-        self.p += 1 ;
-        return self.Code[self.p-1] ;
+
+        if self.p == self.Code.len() {
+            return OP_HALT ;
+        } else {
+            self.p += 1;
+            return self.Code[self.p - 1];
+        }
     }
 
     pub fn GetOperand(&mut self) -> [u8;8] {
@@ -89,7 +96,7 @@ impl App {
         }
     }
 
-    pub fn LaunchVM(&mut self, code:Arc<Mutex<Vec<u8>>>) {
+    pub fn Exec(&mut self, code:Arc<Mutex<Vec<u8>>>) {
 
        let c = Arc::clone(&code);
        let h = Arc::clone(&self.heap);
@@ -97,16 +104,24 @@ impl App {
        let compute = spawn(move || {
            let c2 = &*c.lock().unwrap();
            let h2 = &mut *h.lock().unwrap() ;
-           ExecStack(h2, c2);
+           //ExecStack(h2, c2);
         });
 
         compute.join() ;
+
     }
 }
 
 struct VM {
-    Registers: [u32;1024],
+    Registers: [u64;1024],
+    Stack: [WVAL;STACK_SIZE],
     Constants: ConstantPool,
+
+    sp: usize,
+
+    Code: ByteCode,
+    cp: usize
+
 }
 
 impl VM {
@@ -115,17 +130,128 @@ impl VM {
     pub fn new() -> VM {
         let v = VM {
             Registers: [0;1024],
-            Constants: ConstantPool::new(64000)
+            Constants: ConstantPool::new(64000),
+            Stack: [[0;8];STACK_SIZE],
+            sp: 0,
+
+            Code: ByteCode::new(),
+            cp: 0
         };
         return v ;
     }
 
+    pub fn PushCode(&mut self,&mut code: Vec<u8>) {
+        self.Code.Code.append( code) ;
+    }
+
+    pub fn Push(&mut self, v: WVAL) {
+        self.Stack[self.sp] = v;
+        self.sp+=1 ;
+    }
+
+    pub fn Pop(&mut self) -> WVAL {
+        self.sp-=1 ;
+        return self.Stack[self.sp];
+    }
+
+    pub fn Interpret(&mut self) {
+
+        let c = &self.Code.Code ;
+        //let heap =
+
+        loop {
+
+            let code = c[self.cp] ;
+            self.cp+=1 ;
+
+            println!("OP: {}",OpLabel(code)) ;
+            match code {
+                OP_HALT => {
+                    return;
+                },
+                OP_IPUSH => {
+                    self.Push(self.Code.GetOperand());
+                },
+                OP_IADD => {
+                    let vr = i64::from_le_bytes(self.Pop());
+                    let vl = i64::from_le_bytes(self.Pop());
+                    let res = vl + vr;
+                    self.Push(res.to_le_bytes());
+                },
+                OP_SPUSH => {
+                    self.Push(self.Code.GetOperand());
+                },
+                OP_SETLOCAL => {
+                    let addr = self.Code.GetIOperand() as usize;
+                    self.locals[addr] = self.Pop();
+                },
+                OP_GETLOCAL => {
+                    let addr = self.Code.GetIOperand() as usize;
+                    self.Push(self.locals[addr])
+                },
+                OP_MALLOC => {
+                    &heap.push(ObjVal::NULL);
+                    let addr = (heap.len() - 1) as i64;
+                    self.Push(addr.to_le_bytes())
+                },
+                OP_SET_IHEAP => {
+                    let obj = ObjVal::INT(i64::from_le_bytes(self.Pop()));
+                    let loc = i64::from_le_bytes(self.Pop()) as usize;
+                    heap[loc] = obj;
+                },
+                OP_GET_IHEAP => {
+                    let loc = i64::from_le_bytes(self.Pop()) as usize;
+                    self.Push(heap[loc].GetInt().to_le_bytes());
+                },
+
+                OP_IPRINT => {
+                    let val = i64::from_le_bytes(self.Pop());
+                    println!("{}", val);
+                },
+                _ => {
+                    println!("Oops!")
+                }
+            }
+        }
+    }
+}
+
+pub fn ExecRepl() -> io::Result<()> {
+
+    let mut compiler = Compiler::new("main".to_string()) ;
+    let mut app = App::new();
+    let mut vm = VM::new() ;
+
+    loop {
+        let mut buffer = String::new();
+
+        print!("> ") ;
+        let res = io::Write::flush(&mut io::stdout());
+        if res.is_err() {
+            HandleError("Unable to write to console");
+        }
+
+        io::stdin().read_line(&mut buffer)?;
+
+        if buffer.trim().to_uppercase() == "\\Q".to_string() {
+            break ;
+        }
+
+        compiler.Compile(&buffer);
+        vm.PushCode(compiler.GetByteCode()) ;
+
+
+        vm.Interpret();
+
+
+    }
+    return Ok(()) ;
 }
 
 // Mainloop
+/*
 pub fn ExecStack(heap: &mut Vec<ObjVal>,code: &Vec<u8>) {
 
-    let mut vm = VM::new() ;
     let mut fstack = Vec::with_capacity(1024) ;
     let mut m = Memory::new() ;
 
@@ -186,13 +312,9 @@ pub fn ExecStack(heap: &mut Vec<ObjVal>,code: &Vec<u8>) {
             }
         }
 
-        // End of the line
-        if b.p >= ln {
-            break ;
-        }
     }
 }
-
+*/
 #[cfg(test)]
 mod test {
     use crate::vm::vm::* ;
@@ -222,6 +344,7 @@ mod test {
         let mut ins = Vec::new() ;
 
         let mut app = App::new() ;
+        app.LaunchVM();
 
         let val = app.vm.Constants.Add("Hey hey HEY!!").to_le_bytes()  ;
         PushCmd(&mut ins, OP_IPUSH, 7) ;
@@ -253,7 +376,7 @@ mod test {
 
         let mut v = Arc::new(Mutex::new(ins)) ;
 
-        app.LaunchVM(v) ;
+        app.Exec(v) ;
 
     }
 }

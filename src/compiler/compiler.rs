@@ -7,7 +7,7 @@ use crate::opcodes::* ;
 use crate::objects::datatypes::*;
 use crate::scanner::{Scanner};
 use crate::parser::{CodeParser};
-use crate::rules::{ParseRule, Precedence};
+use crate::rules::{ParseRule, Precedence, PrecList};
 use crate::tokens::{Token, TokenType, TokenList};
 use crate::utils::conversion::StringToInt;
 
@@ -28,48 +28,58 @@ impl Compiler {
 
         let mdl = Module::new(m);
 
-        return  Compiler {
+        let mut c =  Compiler {
             scanner: Scanner::new(),
             parser: CodeParser::new(),
             rules: Compiler::GetRules(),
             module: Box::new(mdl)
-        }
+        } ;
+
+        return c ;
+
     }
 
     pub fn Compile(&mut self, source: &String) {
 
         self.scanner.LoadSource(source) ;
+        self.parser = CodeParser::new() ;
 
+        // Load the first active token
+        self.Advance();
         loop {
-            // Scan tokens
-            let tok = self.scanner.ScanToken() ;
-            if tok.tokenType == T_EOF {
+            if self.Match(T_EOF) {
                 break ;
             }
-
-            self.Evaluate() ;
-
+            self.Statement();
         }
     }
 
-    fn Evaluate(&mut self) {
-        self.Statement() ;
+    pub fn GetByteCode(&mut self) -> Vec<u8> {
+        return  self.module.GetByteCode();
     }
+
 
     fn Expression(&mut self) {
         self.ParsePrecedence(PREC_ASSIGNMENT)
     }
 
     fn Statement(&mut self) {
-        let tok = &self.parser.previous ;
-        match tok {
 
+        let retval = true ;
+        let tok = &self.parser.previous ;
+
+        match tok.tokenType {
+            T_EOF => {return},
             _ => self.ExpressionStatement()
         }
     }
 
     fn ExpressionStatement(&mut self) {
         self.Expression() ;
+
+        if self.Match(T_EOF) {
+            EmitOp!(self OP_IPRINT) ;
+        }
     }
 
     pub fn GetRules() -> Vec<ParseRule> {
@@ -82,11 +92,13 @@ impl Compiler {
         v[T_LEFT_PAREN as usize]    =  ParseRule{prefix: Some(Compiler::Grouping), infix: None, prec: PREC_NONE} ;
         v[T_INTEGER as usize]       =  ParseRule{prefix: Some(Compiler::Integer), infix: None, prec: PREC_NONE} ;
         v[T_MINUS as usize]         =  ParseRule{prefix: Some(Compiler::Unary), infix: Some(Compiler::Binary), prec: PREC_TERM} ;
+        v[T_PLUS as usize]         =  ParseRule{prefix: Some(Compiler::Unary), infix: Some(Compiler::Binary), prec: PREC_TERM} ;
 
         return v ;
     }
 
     fn GetRule(&self, t:TokenType) -> ParseRule {
+        //println!("{}", t as usize);
         return self.rules[t as usize] ;
     }
 
@@ -100,11 +112,15 @@ impl Compiler {
     }
 
     fn Check(self, t:TokenType) -> bool {
-        return self.parser.Check(t) ;
+        return self.parser.current.tokenType == t ;
     }
 
     fn Consume(&mut self, t:TokenType, s:&str) {
-        self.parser.Consume(t,s) ;
+        if self.parser.current.tokenType == t {
+            self.Advance();
+        } else {
+            HandleError(s) ;
+        }
     }
 
     fn Grouping(&mut self, _canAssign:bool) {
@@ -114,21 +130,35 @@ impl Compiler {
 
     // Expression functions
     fn Integer(&mut self, _canAssign:bool) {
-        let intg:i32 = self.parser.previous.name.parse::<i32>().unwrap();
-        let b = intg.to_le_bytes() ;
+        //self.Advance();
+        let intg:i64 = self.parser.previous.name.parse::<i64>().unwrap();
+        let b:[u8;8] = intg.to_le_bytes() ;
         EmitOp!(self OP_IPUSH b);
     }
 
     fn Unary(&mut self, _canAssign:bool) {
+
         let operatorType = self.parser.previous.tokenType ;
         self.ParsePrecedence(PREC_UNARY) ;
+
+        match operatorType {
+            T_PLUS => EmitOp!(self OP_IADD) ,
+            _ => {}
+        }
     }
 
     fn Binary(&mut self, _canAssign:bool) {
-        let operatorType = self.parser.previous.tokenType ;
-        self.ParsePrecedence(PREC_UNARY) ;
-    }
 
+        let operatorType = self.parser.previous.tokenType ;
+        let rule = self.GetRule(operatorType) ;
+        let rprec = rule.prec as usize + 1 ;
+        self.ParsePrecedence(PrecList[rprec]) ;
+
+        match operatorType {
+            T_PLUS => EmitOp!(self OP_IADD) ,
+            _ => {}
+        }
+    }
 
     fn ParsePrecedence(&mut self, prec:Precedence) {
 
@@ -148,7 +178,7 @@ impl Compiler {
         let canAssign = prec <= PREC_ASSIGNMENT;
         prefix.unwrap()(self,canAssign);
 
-        while prec <= (&self.GetRule(self.parser.current.tokenType)).prec {
+        while prec <= (&self.GetRule(self.parser.previous.tokenType)).prec {
             self.Advance() ;
 
             let infix = &self.GetRule(self.parser.previous.tokenType).infix ;

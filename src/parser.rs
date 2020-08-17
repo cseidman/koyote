@@ -45,10 +45,12 @@ impl CodeParser {
     }
 
     pub fn Consume(&mut self, t:TokenType, s:&str) {
+        println!("Token type: {}",t as usize) ;
         if self.current.tokenType == t {
             self.previous = self.current.clone() ;
             return;
+        } else {
+            HandleError(s);
         }
-        HandleError(s) ;
     }
 }

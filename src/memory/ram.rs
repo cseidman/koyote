@@ -9,7 +9,7 @@ use crate::constants::* ;
 
 const BLOCK_HEAP:usize = 65536 ;
 const BLOCK_STACK:usize = 8092 ;
-const STACK_SIZE:usize = 64000 ;
+pub const STACK_SIZE:usize = 64000 ;
 const STATIC_SIZE:usize = 1024 ;
 const MEMORY_SLOTS:usize = 10240000 ;
 
@@ -30,7 +30,7 @@ impl Memory {
             Static: Vec::with_capacity(STATIC_SIZE),
             Stack: [[0;8];STACK_SIZE],
             sp: 0,
-            tmp: 0,
+            tmp: 0
         };
     }
 

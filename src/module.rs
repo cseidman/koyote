@@ -34,6 +34,12 @@ impl Module {
         };
     }
 
+    pub fn ClearInstructions(&mut self) {
+        self.instructions = Vec::<Instruction>::new() ;
+        self.iCount = 0 ;
+        self.bytes = 0 ;
+    }
+
     // Add the given object to the current module's constant pool
     // and return the index number of the new constant
     pub fn NewConstant(&mut self, o: ObjVal) -> u16 {
@@ -43,9 +49,28 @@ impl Module {
     }
 
     // Once an instruction has added, we can add operands to the same instruction
-    pub fn AddOperand(&mut self, operand: VAL) {
-        self.instructions[self.iCount].AddOperand(operand) ;
-        self.bytes+=2 ; // Add 2 to the total bytes
+    pub fn AddOperand(&mut self, operand: WVAL) {
+        self.instructions[self.iCount-1].AddOperand(operand) ;
+        self.bytes+=8 ; // Add 2 to the total bytes
+    }
+
+    pub fn GetByteCode(&mut self) -> Vec<u8> {
+        let mut b = Vec::<u8>::new()  ;
+        for i in 0 .. self.instructions.len() {
+            b.push(self.instructions[i].opcode as u8) ;
+            for j in 0..self.instructions[i].operandCount {
+                b.push(self.instructions[i].operands[j][0]);
+                b.push(self.instructions[i].operands[j][1]);
+                b.push(self.instructions[i].operands[j][2]);
+                b.push(self.instructions[i].operands[j][3]);
+                b.push(self.instructions[i].operands[j][4]);
+                b.push(self.instructions[i].operands[j][5]);
+                b.push(self.instructions[i].operands[j][6]);
+                b.push(self.instructions[i].operands[j][7]);
+            }
+        }
+        self.ClearInstructions() ;
+        return b ;
     }
 
     pub fn AddInstruction(&mut self, opcode: OpCode) {

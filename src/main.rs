@@ -14,10 +14,13 @@ use std::io::{self,Write};
 use std::fmt::Error;
 use std::borrow::{BorrowMut, Borrow};
 use clap::{Arg, App};
+use std::sync::{Arc, Mutex};
 
 use koyote::compiler::compiler::{Compiler} ;
 use koyote::errormgr::{HandleError} ;
 use koyote::utils::conversion::* ;
+use koyote::objects::datatypes::* ;
+use koyote::vm::vm::{ExecStack,App as Application};
 
 fn main() -> io::Result<()> {
 /*
@@ -56,6 +59,7 @@ fn main() -> io::Result<()> {
 pub fn Repl() -> io::Result<()> {
 
     let mut compiler = Compiler::new("main".to_string()) ;
+    let mut app = Application::new();
 
     loop {
         let mut buffer = String::new();
@@ -73,6 +77,12 @@ pub fn Repl() -> io::Result<()> {
         }
 
         compiler.Compile(&buffer);
+        let b = compiler.GetByteCode() ;
+
+        let v = Arc::new(Mutex::new(b)) ;
+
+        app.Exec(v) ;
+
 
     }
     return Ok(()) ;

@@ -29,12 +29,12 @@ pub enum TokenType {
     T_SUPER, T_THIS,T_TRUE, T_VAR, T_WHILE,
 
     // System level keywords
-    T_ERROR, T_EOF, T_START
+    T_ERROR, T_EOF, T_START, T_CR
 }
 
 use self::TokenType::* ;
 
-pub static TokenList: [TokenType;47] =
+pub static TokenList: [TokenType;48] =
 [T_LEFT_PAREN, T_RIGHT_PAREN, T_LEFT_BRACE,
 T_RIGHT_BRACE, T_LEFT_BRACKET, T_RIGHT_BRACKET,
 T_COMMA, T_DOT, T_MINUS,
@@ -49,5 +49,5 @@ T_FALSE, T_FOR, T_FUN,
 T_IF, T_NIL, T_OR,
 T_PRINT, T_RETURN, T_SUPER,
 T_THIS, T_TRUE, T_VAR,
-T_WHILE, T_ERROR, T_EOF, T_START] ;
+T_WHILE, T_ERROR, T_EOF, T_START, T_CR] ;
 
